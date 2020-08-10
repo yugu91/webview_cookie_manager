@@ -52,6 +52,9 @@ public class WebviewCookieManagerPlugin implements FlutterPlugin, MethodCallHand
   @Override
   public void onMethodCall(MethodCall methodCall, Result result) {
     switch (methodCall.method) {
+      case "removeCookie":
+        removeCookie(methodCall, result);
+        break;
       case "clearCookies":
         clearCookies(result);
         break;
@@ -71,6 +74,63 @@ public class WebviewCookieManagerPlugin implements FlutterPlugin, MethodCallHand
     channel.setMethodCallHandler(null);
   }
 
+  private static void removeCookie(final MethodCall methodCall, final Result result) {
+    if (!(methodCall.arguments() instanceof Map)) {
+      result.error(
+              "Invalid argument. Expected Map<String,String>, received "
+                      + (methodCall.arguments().getClass().getSimpleName()),
+              null,
+              null);
+      return;
+    }
+
+    final Map<String, String> arguments = methodCall.arguments();
+
+    CookieManager cookieManager = CookieManager.getInstance();
+
+    final String url = arguments.get("url");
+    final String allCookiesString = cookieManager.getCookie(url);
+    final ArrayList<Map<String,Object>> individualCookieStrings = (ArrayList<Map<String,Object>>)getCookieByUrl(url).clone();
+
+    boolean resultRemoved= removeAllCookie();
+    System.out.println("Removed: "+!resultRemoved);
+
+    for (Map<String, Object> cookieMap : individualCookieStrings) {
+      String domain = cookieMap.get("domain").toString();
+      if (url.contains(domain)) {
+        System.out.println(cookieMap.toString());
+        continue;
+      }
+
+      cookieManager.setCookie(cookieMap.get("domain").toString(), cookieMap.toString());
+
+    }
+    final String allCookiesStrings = cookieManager.getCookie(url);
+
+    result.success(null);
+  }
+
+  private static String asString(String cook){
+    return cook;
+  }
+  private static boolean removeAllCookie() {
+    CookieManager cookieManager = CookieManager.getInstance();
+    final boolean hasCookies = cookieManager.hasCookies();
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      cookieManager.removeAllCookies(
+              new ValueCallback<Boolean>() {
+                @Override
+                public void onReceiveValue(Boolean value) {
+
+                }
+              });
+    } else {
+      cookieManager.removeAllCookie();
+
+    }
+    return !cookieManager.hasCookies();
+  }
+
   private static void clearCookies(final Result result) {
     CookieManager cookieManager = CookieManager.getInstance();
     final boolean hasCookies = cookieManager.hasCookies();
@@ -86,6 +146,35 @@ public class WebviewCookieManagerPlugin implements FlutterPlugin, MethodCallHand
       cookieManager.removeAllCookie();
       result.success(hasCookies);
     }
+  }
+
+
+
+
+  private static ArrayList<Map<String, Object>> getCookieByUrl(String url) {
+
+    CookieManager cookieManager = CookieManager.getInstance();
+    final String allCookiesString = cookieManager.getCookie(url);
+    System.out.println(allCookiesString);
+    final ArrayList<String> individualCookieStrings = allCookiesString == null ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(allCookiesString.split(";")));
+
+    ArrayList<Map<String, Object>> serializedCookies = new ArrayList<>();
+    for (String cookieString : individualCookieStrings) {
+      try {
+        final HttpCookie cookie = HttpCookie.parse(cookieString).get(0);
+        if (cookie.getDomain() == null) {
+          cookie.setDomain(Uri.parse(url).getHost());
+        }
+        if (cookie.getPath() == null) {
+          cookie.setPath("/");
+        }
+        serializedCookies.add(cookieToMap(cookie));
+      } catch (IllegalArgumentException e) {
+        // Cookie is invalid. Ignoring.
+      }
+    }
+
+    return serializedCookies;
   }
 
   private static void getCookies(final MethodCall methodCall, final Result result) {
@@ -147,7 +236,8 @@ public class WebviewCookieManagerPlugin implements FlutterPlugin, MethodCallHand
       }
 
       cookieManager.setCookie(
-              cookieMap.get("domain").toString(), cookieMap.get("asString").toString());
+              cookieMap.get("domain").toString(), cookieMap.toString());
+
     }
 
     result.success(null);

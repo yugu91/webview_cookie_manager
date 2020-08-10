@@ -48,6 +48,12 @@ class WebviewCookieManager {
   }
 
   /// Remove cookies with [currentUrl] or all for cookies without url
+  Future<bool> removeCookie([String currentUrl]) {
+    return _channel.invokeMethod<bool>(
+        'clearCookies', <dynamic, dynamic>{'url': currentUrl});
+  }
+
+  /// Remove cookies with [currentUrl] or all for cookies without url
   Future<void> clearCookies([String currentUrl]) {
     return _channel.invokeMethod<void>(
         'clearCookies', <dynamic, dynamic>{'url': currentUrl});

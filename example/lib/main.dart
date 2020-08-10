@@ -32,6 +32,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        floatingActionButton: FloatingActionButton(onPressed: () async {
+          final asd = await cookieManager.removeCookie(_url);
+          print(asd);
+          // final gotCookies = await cookieManager.getCookies(_url);
+          // for (var item in gotCookies) {
+          //   print(item);
+          // }
+        }),
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
