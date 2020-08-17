@@ -1,0 +1,29 @@
+name: webview_cookie_manager_web
+description: A new Flutter package project.
+version: 0.0.1
+author: null
+homepage: null
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0 <2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_cookie_manager_platform_interface:
+    path: ../webview_cookie_manager_platform_interface
+  flutter_web_plugins:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      web:
+        pluginClass: WebviewCookieManagerWebWebPlugin
+        fileName: webview_cookie_manager_web_web.dart
+

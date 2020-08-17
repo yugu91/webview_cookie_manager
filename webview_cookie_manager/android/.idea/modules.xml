@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/io.flutter.plugins.webview_cookie_manager-webview_cookie_manager.iml" filepath="$PROJECT_DIR$/.idea/modules/io.flutter.plugins.webview_cookie_manager-webview_cookie_manager.iml" group="webview_cookie_manager" />
+      <module fileurl="file://$PROJECT_DIR$/webview_cookie_manager.iml" filepath="$PROJECT_DIR$/webview_cookie_manager.iml" />
+    </modules>
+  </component>
+</project>
