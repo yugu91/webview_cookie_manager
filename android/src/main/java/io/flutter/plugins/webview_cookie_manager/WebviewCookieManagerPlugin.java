@@ -148,18 +148,31 @@ public class WebviewCookieManagerPlugin implements FlutterPlugin, MethodCallHand
 
     CookieManager cookieManager = CookieManager.getInstance();
 
-    for (Map<String, Object> cookieMap : serializedCookies) {
+    for (final Map<String, Object> cookieMap : serializedCookies) {
       String domain = cookieMap.get("domain").toString();
       if (domain == null || domain.isEmpty()) {
-        result.error("Cookies domain is not specified",null,null);
+        result.error("Cookies domain is not specified", null, null);
         return;
       }
 
-      cookieManager.setCookie(
-              cookieMap.get("domain").toString(), cookieMap.get("asString").toString());
+      if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+        cookieManager.setCookie(
+                cookieMap.get("domain").toString(), cookieMap.get("asString").toString(), new ValueCallback<Boolean>() {
+                  @Override
+                  public void onReceiveValue(Boolean value) {
+                    if (serializedCookies.indexOf(cookieMap) == serializedCookies.size() - 1) {
+                      result.success(null);
+                    }
+                  }
+                });
+      } else {
+        cookieManager.setCookie(
+                cookieMap.get("domain").toString(), cookieMap.get("asString").toString());
+      }
     }
-
-    result.success(null);
+    if (Build.VERSION.SDK_INT < VERSION_CODES.LOLLIPOP) {
+      result.success(null);
+    }
   }
 
   private static Map<String, Object> cookieToMap(HttpCookie cookie) {
