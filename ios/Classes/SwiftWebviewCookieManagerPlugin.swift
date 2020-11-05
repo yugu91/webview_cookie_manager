@@ -2,12 +2,14 @@ import Flutter
 import UIKit
 import WebKit
 
-@available(iOS 11.0, *)
 public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
+    @available(iOS 11.0, *)
     static var httpCookieStore: WKHTTPCookieStore?
     
   public static func register(with registrar: FlutterPluginRegistrar) {
-    httpCookieStore = WKWebsiteDataStore.default().httpCookieStore
+    if #available(iOS 11.0, *) {
+        httpCookieStore = WKWebsiteDataStore.default().httpCookieStore
+    }
     
     let channel = FlutterMethodChannel(name: "webview_cookie_manager", binaryMessenger: registrar.messenger())
     let instance = SwiftWebviewCookieManagerPlugin()
@@ -19,17 +21,33 @@ public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
         case "getCookies":
             let arguments = call.arguments as! NSDictionary
             let url = arguments["url"] as? String
-            SwiftWebviewCookieManagerPlugin.getCookies(url: url, result: result)
+            if #available(iOS 11.0, *) {
+                SwiftWebviewCookieManagerPlugin.getCookies(url: url, result: result)
+            }else{
+                result([]);
+            }
             break
         case "setCookies":
             let cookies = call.arguments as! Array<NSDictionary>
-            SwiftWebviewCookieManagerPlugin.setCookies(cookies: cookies, result: result)
+            if #available(iOS 11.0, *) {
+                SwiftWebviewCookieManagerPlugin.setCookies(cookies: cookies, result: result)
+            }else{
+                result(true);
+            }
             break
         case "hasCookies":
-            SwiftWebviewCookieManagerPlugin.hasCookies(result: result)
+            if #available(iOS 11.0, *) {
+                SwiftWebviewCookieManagerPlugin.hasCookies(result: result)
+            }else{
+                result(false);
+            }
             break
         case "clearCookies":
-            SwiftWebviewCookieManagerPlugin.clearCookies(result: result)
+            if #available(iOS 11.0, *) {
+                SwiftWebviewCookieManagerPlugin.clearCookies(result: result)
+            }else{
+                result(nil);
+            }
             break
         default:
             result(FlutterMethodNotImplemented)
@@ -37,6 +55,7 @@ public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
     }
   }
     
+    @available(iOS 11.0, *)
     public static func setCookies(cookies: Array<NSDictionary>, result: @escaping FlutterResult) {
         for cookie in cookies {
             _setCookie(cookie: cookie, result: result)
@@ -44,6 +63,7 @@ public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
         
     }
     
+    @available(iOS 11.0, *)
     public static func clearCookies(result: @escaping FlutterResult) {
         httpCookieStore!.getAllCookies { (cookies) in
                 for cookie in cookies {
@@ -53,21 +73,32 @@ public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
         }
     }
     
+    @available(iOS 11.0, *)
     public static func hasCookies(result: @escaping FlutterResult) {
         httpCookieStore!.getAllCookies { (cookies) in
             result(!cookies.isEmpty)
         }
     }
     
+    @available(iOS 11.0, *)
     private static func _setCookie(cookie: NSDictionary, result: @escaping FlutterResult) {
         let expiresDate = cookie["expires"] as? Double
         let isSecure = cookie["secure"] as? Bool
         let isHttpOnly = cookie["httpOnly"] as? Bool
         
         var properties: [HTTPCookiePropertyKey: Any] = [:]
-        properties[.name] = cookie["name"] as! String
-        properties[.value] = cookie["value"] as! String
-        properties[.domain] = cookie["domain"] as! String
+        if let name = cookie["name"] as? String,
+           let value = cookie["value"] as? String,
+           let domain = cookie["domain"] as? String {
+            properties[.name] = name
+            properties[.value] = value
+            properties[.domain] = domain
+        }else{
+            print(cookie);
+            print("Cookies set error,\"name value domain\" not be null");
+            return;
+        }
+        
         properties[.path] = cookie["path"] as? String ?? "/"
         if expiresDate != nil {
             properties[.expires] = Date(timeIntervalSince1970: expiresDate!)
@@ -86,6 +117,7 @@ public class SwiftWebviewCookieManagerPlugin: NSObject, FlutterPlugin {
         })
     }
     
+    @available(iOS 11.0, *)
     public static func getCookies(url: String?, result: @escaping FlutterResult) {
         let cookieList: NSMutableArray = NSMutableArray()
         httpCookieStore!.getAllCookies { (cookies) in

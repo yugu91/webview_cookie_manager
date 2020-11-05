@@ -4,7 +4,8 @@
 A flutter library to manager your web cookies for Android(API level 9) and iOS(11+).
 
 ## Get started iOS
-Set minimum version for iOS to 11.0
+Recommend set minimum version for iOS to 11.0.
+Always return "null" under 11.0.
 
 ## How to use
 The WebCookieManager can be used directly or together with [webview_flutter](https://pub.dev/packages/webview_flutter).
